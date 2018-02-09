@@ -140,10 +140,9 @@ history_callback = model.fit_generator(
     callbacks=callbacks_list,
     verbose=0)
 
+pandas.DataFrame(history_callback.history).to_csv("history.csv")
+model.save('keras_allconv.h5')
+
 im = cv2.resize(cv2.imread('image.jpg'), (224, 224)).astype(np.float32)
 out = model.predict(im)
 print(np.argmax(out))
-
-pandas.DataFrame(history_callback.history).to_csv("history.csv")
-
-model.save('keras_allconv.h5')

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import tensorflow as tf
+import keras
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -15,6 +16,24 @@ from keras.callbacks import ModelCheckpoint
 import pandas
 import cv2
 import numpy as np
+
+
+def print_sizes(kmodel, input_size):
+    assert isinstance(kmodel, keras.models.Sequential)
+
+    s0 = input_size
+    for layer in kmodel.layers:
+        s1 = layer.compute_output_shape(s0)
+
+        print("Out shape: %s" % (s1,))
+        if isinstance(layer, keras.layers.Activation):
+            print("  Neurons: %s" % (s1,))
+        elif isinstance(layer, keras.layers.Conv2D):
+            weights = layer.get_weights()
+            print("  Params: %d, %d" % (weights[0].size, weights[1].size))
+
+        s0 = s1
+
 
 K.set_image_dim_ordering('tf')
 
@@ -38,26 +57,33 @@ Y_test = np_utils.to_categorical(y_test, nb_classes)
 
 model = Sequential()
 
-#model.add(Convolution2D(64, 9, border_mode='same', input_shape=(32, 32, 3), strides=2))
+#model.add(Convolution2D(64, 9, padding='same', input_shape=(32, 32, 3), strides=2))
 #model.add(Activation('relu'))
 #model.add(Dropout(0.5))
 
-model.add(Convolution2D(3, 1, border_mode='same', input_shape=(32, 32, 3)))
-#model.add(Convolution2D(6, 1, border_mode='same', input_shape=(32, 32, 3)))
+model.add(Convolution2D(3, 1, padding='valid', input_shape=(32, 32, 3)))
+#model.add(Convolution2D(6, 1, padding='valid', input_shape=(32, 32, 3)))
 model.add(Activation('relu'))
-model.add(Convolution2D(64, 9, border_mode='same', subsample=(2, 2)))
+model.add(Convolution2D(64, 3, padding='valid', strides=2))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
-model.add(Convolution2D(64, 7, border_mode='same', strides=2))
-model.add(Activation('relu'))
+#model.add(Convolution2D(64, 3, padding='valid', strides=2))
+#model.add(Convolution2D(64, 5, padding='valid', strides=2))
+#model.add(Convolution2D(64, 5, padding='valid'))
+#model.add(Activation('relu'))
 #model.add(Dropout(0.5))
 
-model.add(Convolution2D(96, (3, 3), border_mode='same'))
+model.add(Convolution2D(96, 3, padding='valid'))
 model.add(Activation('relu'))
-model.add(Convolution2D(96, (1, 1), border_mode='valid'))
+model.add(Convolution2D(96, 3, padding='valid'))
 model.add(Activation('relu'))
-model.add(Convolution2D(10, (1, 1), border_mode='valid'))
+
+model.add(Convolution2D(96, 3, padding='valid'))
+model.add(Activation('relu'))
+model.add(Convolution2D(96, 1, padding='valid'))
+model.add(Activation('relu'))
+model.add(Convolution2D(10, 1, padding='valid'))
 
 model.add(GlobalAveragePooling2D())
 model.add(Activation('softmax'))
@@ -65,7 +91,7 @@ model.add(Activation('softmax'))
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-
+#print_sizes(model, (1, 32, 32, 3))
 print(model.summary())
 
 X_train = X_train.astype('float32')

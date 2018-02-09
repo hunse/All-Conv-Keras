@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import sys
+
 import tensorflow as tf
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
@@ -15,6 +17,8 @@ import pandas
 import cv2
 import numpy as np
 
+modelfile = sys.argv[1] if len(sys.argv) > 1 else 'weights.hdf5'
+
 K.set_image_dim_ordering('tf')
 
 
@@ -28,7 +32,7 @@ nb_classes = 10
 Y_train = np_utils.to_categorical(y_train, nb_classes)
 Y_test = np_utils.to_categorical(y_test, nb_classes)
 
-model = load_model('weights.hdf5')
+model = load_model(modelfile)
 
 X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
